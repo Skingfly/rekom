@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Админ-панель PeKom</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23C17B3C'/%3E%3Ctext x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-weight='bold'%3EP%3C/text%3E%3C/svg%3E">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #F5F7FA;
+            color: #1E2A3E;
+            transition: background 0.3s, color 0.3s;
+            padding: 20px;
+        }
+        body.dark {
+            background: #121212;
+            color: #eee;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 28px;
+            padding: 24px;
+            transition: background 0.3s;
+        }
+        body.dark .container { background: #1e1e1e; }
+        h1, h2 { color: #C17B3C; }
+        
+        .login-form {
+            max-width: 350px;
+            margin: 100px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 28px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        body.dark .login-form {
+            background: #2a2a2a;
+            border: 1px solid #444;
+        }
+        .login-form h2 { text-align: center; margin-bottom: 24px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
+        
+        input, select, textarea, button {
+            font-family: inherit;
+            padding: 12px 16px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            background: #F9F9F9;
+            font-size: 14px;
+            width: 100%;
+        }
+        textarea { resize: vertical; min-height: 120px; }
+        body.dark input, body.dark select, body.dark textarea {
+            background: #3a3a3a;
+            border-color: #555;
+            color: white;
+        }
+        button {
+            background: #C17B3C;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        button:hover { background: #A5642D; }
+        
+        .logout {
+            background: #6c757d;
+            width: auto;
+            padding: 8px 20px;
+            margin-bottom: 20px;
+            float: right;
+        }
+        .logout:hover { background: #5a6268; }
+        
+        .error { color: #f44336; margin-top: 12px; text-align: center; }
+        
+        /* Табы */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            color: #666;
+            border-radius: 30px 30px 0 0;
+            transition: 0.2s;
+        }
+        .tab-btn.active {
+            background: #C17B3C;
+            color: white;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Фильтры */
+        .filter-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-bar select, .filter-bar button { width: auto; padding: 8px 16px; }
+        
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 20px;
+            border-radius: 20px;
+            border: 1px solid #eee;
+        }
+        body.dark .table-wrapper { border-color: #444; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark th, body.dark td { border-color: #444; }
+        th {
+            background: #F5EFDF;
+            font-weight: 600;
+        }
+        body.dark th {
+            background: #2c2c2c;
+            color: #e9dbd2;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-new { background: #ff9800; color: white; }
+        .status-reviewed { background: #4caf50; color: white; }
+        
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        button.small {
+            padding: 4px 12px;
+            font-size: 12px;
+            width: auto;
+        }
+        button.delete { background: #f44336; }
+        button.delete:hover { background: #d32f2f; }
+        
+        .staff-form, .staff-list, .reviews-form, .reviews-list {
+            margin-top: 40px;
+            border-top: 1px solid #eee;
+            padding-top: 24px;
+        }
+        body.dark .staff-form, body.dark .staff-list, body.dark .reviews-form, body.dark .reviews-list { border-color: #444; }
+        .staff-item, .review-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: #f9f9f9;
+            padding: 16px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        body.dark .staff-item, body.dark .review-item { background: #2a2a2a; }
+        .staff-item img, .review-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .staff-info, .review-info { flex: 1; }
+        .staff-actions button, .review-actions button {
+            width: auto;
+            margin-left: 8px;
+        }
+        
+        .theme-toggle-admin {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #C17B3C;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { padding: 16px; }
+            .filter-bar { flex-direction: column; align-items: stretch; }
+            .filter-bar select, .filter-bar button { width: 100%; }
+            .staff-item, .review-item { flex-direction: column; text-align: center; }
+            .staff-actions button, .review-actions button { margin: 5px; }
+            .logout {
+                float: none;
+                display: block;
+                margin-top: 60px;
+                width: 100%;
+                text-align: center;
+            }
+            .login-form { margin-top: 80px; }
+            .action-buttons { flex-direction: column; gap: 6px; }
+            .tabs { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle-admin" id="themeToggleAdmin"><i class="fas fa-moon"></i></button>
+    
+    <div id="loginPanel" class="login-form">
+        <h2>Вход в админ-панель</h2>
+        <div class="form-group"><label>Логин</label><input type="text" id="login" value="admin"></div>
+        <div class="form-group"><label>Пароль</label><input type="password" id="password" value="admin123"></div>
+        <button onclick="login()">Войти</button>
+        <div id="loginError" class="error"></div>
+    </div>
+    
+    <div id="adminPanel" style="display:none;">
+        <div class="container">
+            <button class="logout" onclick="logout()">Выйти</button>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="applications">Заявки</button>
+                <button class="tab-btn" data-tab="staff">Сотрудники</button>
+                <button class="tab-btn" data-tab="reviews">Отзывы</button>
+            </div>
+            
+            <!-- Таб Заявки -->
+            <div id="applicationsTab" class="tab-content active">
+                <h1>Заявки на вакансии</h1>
+                <div class="filter-bar">
+                    <select id="statusFilter">
+                        <option value="all">Все статусы</option>
+                        <option value="new">Новые</option>
+                        <option value="reviewed">Просмотренные</option>
+                    </select>
+                    <select id="expFilter">
+                        <option value="all">Весь опыт</option>
+                        <option value="has">Есть опыт</option>
+                        <option value="no">Нет опыта</option>
+                    </select>
+                    <button onclick="applyFilters()">Применить фильтр</button>
+                    <button onclick="resetFilters()">Сбросить</button>
+                </div>
+                <div class="table-wrapper">
+                    <table id="applicationsTable">
+                        <thead><tr><th>ID</th><th>Вакансия</th><th>ФИО</th><th>Телефон</th><th>Email</th><th>Опыт</th><th>Резюме</th><th>Статус</th><th>Действия</th><th>Дата</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Таб Сотрудники -->
+            <div id="staffTab" class="tab-content">
+                <h2>Управление сотрудниками</h2>
+                <div class="staff-form">
+                    <div class="form-group"><label>ФИО</label><input type="text" id="staffName" placeholder="Иванов Иван Иванович"></div>
+                    <div class="form-group"><label>Должность</label><input type="text" id="staffPosition" placeholder="Директор"></div>
+                    <div class="form-group"><label>Описание</label><textarea id="staffDesc" rows="4" placeholder="Подробное описание сотрудника"></textarea></div>
+                    <div class="form-group"><label>Фотография</label><input type="file" id="staffPhoto" accept="image/*"></div>
+                    <button onclick="addStaff()">Добавить сотрудника</button>
+                </div>
+                <div id="staffList" class="staff-list"></div>
+            </div>
+            
+            <!-- Таб Отзывы -->
+            <div id="reviewsTab" class="tab-content">
+                <h2>Управление отзывами</h2>
+                <div class="reviews-form">
+                    <div class="form-group"><label>Автор</label><input type="text" id="reviewAuthor" placeholder="Имя сотрудника (должность)"></div>
+                    <div class="form-group"><label>Текст отзыва</label><textarea id="reviewText" rows="3" placeholder="Текст отзыва"></textarea></div>
+                    <div class="form-group"><label>Фотография</label><input type="file" id="reviewPhoto" accept="image/*"></div>
+                    <button onclick="addReview()">Добавить отзыв</button>
+                </div>
+                <div id="reviewsList" class="reviews-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allApplications = [];
+
+        // Тёмная тема
+        const themeBtnAdmin = document.getElementById('themeToggleAdmin');
+        if (localStorage.getItem('adminTheme') === 'dark') document.body.classList.add('dark');
+        themeBtnAdmin.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('adminTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        // Переключение табов
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const tabId = btn.dataset.tab;
+                document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+                document.getElementById(`${tabId}Tab`).classList.add('active');
+                if (tabId === 'staff') loadStaff();
+                if (tabId === 'reviews') loadReviews();
+            });
+        });
+
+        async function login() {
+            const login = document.getElementById('login').value;
+            const password = document.getElementById('password').value;
+            const res = await fetch('/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ login, password })
+            });
+            if (res.ok) {
+                document.getElementById('loginPanel').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                loadApplications();
+                loadStaff();
+                loadReviews();
+            } else {
+                document.getElementById('loginError').innerText = 'Неверный логин или пароль';
+            }
+        }
+        async function logout() {
+            await fetch('/admin/logout', { method: 'POST' });
+            location.reload();
+        }
+
+        // ЗАЯВКИ
+        async function loadApplications() {
+            const res = await fetch('/admin/applications');
+            allApplications = await res.json();
+            applyFilters();
+        }
+        function applyFilters() {
+            let filtered = [...allApplications];
+            const status = document.getElementById('statusFilter').value;
+            const exp = document.getElementById('expFilter').value;
+            if (status !== 'all') filtered = filtered.filter(a => a.status === status);
+            if (exp === 'has') filtered = filtered.filter(a => a.experience && a.experience !== 'Нет опыта');
+            if (exp === 'no') filtered = filtered.filter(a => a.experience === 'Нет опыта');
+            renderTable(filtered);
+        }
+        function resetFilters() {
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('expFilter').value = 'all';
+            applyFilters();
+        }
+        function renderTable(applications) {
+            const tbody = document.querySelector('#applicationsTable tbody');
+            tbody.innerHTML = '';
+            applications.forEach(a => {
+                const row = tbody.insertRow();
+                row.insertCell(0).innerText = a.id;
+                row.insertCell(1).innerText = a.vacancy;
+                row.insertCell(2).innerText = a.fullName;
+                row.insertCell(3).innerText = a.phone;
+                row.insertCell(4).innerText = a.email;
+                row.insertCell(5).innerText = a.experience || '';
+                const resumeCell = row.insertCell(6);
+                if (a.resume_path) resumeCell.innerHTML = `<a href="${a.resume_path}" target="_blank">Скачать</a>`;
+                else resumeCell.innerText = '-';
+                const statusCell = row.insertCell(7);
+                statusCell.innerHTML = `<span class="status-badge ${a.status === 'new' ? 'status-new' : 'status-reviewed'}">${a.status === 'new' ? 'Новая' : 'Просмотрено'}</span>`;
+                const actionsCell = row.insertCell(8);
+                let buttons = '';
+                if (a.status === 'new') {
+                    buttons = `<button class="small" onclick="updateStatus(${a.id}, 'reviewed')">Просмотрено</button>`;
+                } else {
+                    buttons = `<button class="small" onclick="updateStatus(${a.id}, 'new')">Вернуть</button>`;
+                }
+                buttons += `<button class="small delete" onclick="deleteApplication(${a.id})">Удалить</button>`;
+                actionsCell.innerHTML = `<div class="action-buttons">${buttons}</div>`;
+                row.insertCell(9).innerText = new Date(a.created_at).toLocaleString();
+            });
+        }
+        async function updateStatus(id, newStatus) {
+            const res = await fetch(`/admin/applications/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (res.ok) loadApplications();
+            else alert('Ошибка обновления');
+        }
+        async function deleteApplication(id) {
+            if (!confirm('Удалить заявку?')) return;
+            const res = await fetch(`/admin/applications/${id}`, { method: 'DELETE' });
+            if (res.ok) loadApplications();
+            else alert('Ошибка удаления');
+        }
+
+        // СОТРУДНИКИ
+        async function loadStaff() {
+            const res = await fetch('/admin/staff');
+            const staff = await res.json();
+            const container = document.getElementById('staffList');
+            container.innerHTML = '';
+            staff.forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'staff-item';
+                div.innerHTML = `
+                    <img src="${s.photo}" alt="${s.name}">
+                    <div class="staff-info"><strong>${s.name}</strong> — ${s.position}<br><small>${s.description}</small></div>
+                    <div class="staff-actions">
+                        <button class="small" onclick="editStaff(${s.id}, '${s.name.replace(/'/g, "\\'")}', '${s.position.replace(/'/g, "\\'")}', '${s.description.replace(/'/g, "\\'")}')">Редактировать</button>
+                        <button class="small delete" onclick="deleteStaff(${s.id})">Удалить</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+        window.editStaff = (id, name, position, description) => {
+            document.getElementById('staffName').value = name;
+            document.getElementById('staffPosition').value = position;
+            document.getElementById('staffDesc').value = description;
+            window.editId = id;
+            const btn = document.querySelector('.staff-form button');
+            btn.innerText = 'Обновить сотрудника';
+            btn.onclick = () => updateStaff(id);
+        };
+        async function addStaff() {
+            const formData = new FormData();
+            formData.append('name', document.getElementById('staffName').value);
+            formData.append('position', document.getElementById('staffPosition').value);
+            formData.append('description', document.getElementById('staffDesc').value);
+            const file = document.getElementById('staffPhoto').files[0];
+            if (file) formData.append('photo', file);
+            const res = await fetch('/api/staff', { method: 'POST', body: formData });
+            if (res.ok) { loadStaff(); resetStaffForm(); }
+            else alert('Ошибка добавления');
+        }
+        async function updateStaff(id) {
+            const formData = new FormData();
+            formData.append('name', document.getElementById('staffName').value);
+            formData.append('position', document.getElementById('staffPosition').value);
+            formData.append('description', document.getElementById('staffDesc').value);
+            const file = document.getElementById('staffPhoto').files[0];
+            if (file) formData.append('photo', file);
+            const res = await fetch(`/api/staff/${id}`, { method: 'PUT', body: formData });
+            if (res.ok) { loadStaff(); resetStaffForm(); }
+            else alert('Ошибка обновления');
+        }
+        async function deleteStaff(id) {
+            if (!confirm('Удалить сотрудника?')) return;
+            const res = await fetch(`/api/staff/${id}`, { method: 'DELETE' });
+            if (res.ok) loadStaff();
+            else alert('Ошибка удаления');
+        }
+        function resetStaffForm() {
+            document.getElementById('staffName').value = '';
+            document.getElementById('staffPosition').value = '';
+            document.getElementById('staffDesc').value = '';
+            document.getElementById('staffPhoto').value = '';
+            const btn = document.querySelector('.staff-form button');
+            btn.innerText = 'Добавить сотрудника';
+            btn.onclick = addStaff;
+            window.editId = null;
+        }
+
+        // ОТЗЫВЫ
+        async function loadReviews() {
+            const res = await fetch('/admin/reviews');
+            const reviews = await res.json();
+            const container = document.getElementById('reviewsList');
+            container.innerHTML = '';
+            reviews.forEach(r => {
+                const div = document.createElement('div');
+                div.className = 'review-item';
+                div.innerHTML = `
+                    <img src="${r.photo}" alt="${r.author}">
+                    <div class="review-info"><strong>${r.author}</strong><br><small>${r.text}</small></div>
+                    <div class="review-actions">
+                        <button class="small" onclick="editReview(${r.id}, '${r.author.replace(/'/g, "\\'")}', '${r.text.replace(/'/g, "\\'")}')">Редактировать</button>
+                        <button class="small delete" onclick="deleteReview(${r.id})">Удалить</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+        window.editReview = (id, author, text) => {
+            document.getElementById('reviewAuthor').value = author;
+            document.getElementById('reviewText').value = text;
+            window.editReviewId = id;
+            const btn = document.querySelector('.reviews-form button');
+            btn.innerText = 'Обновить отзыв';
+            btn.onclick = () => updateReview(id);
+        };
+        async function addReview() {
+            const formData = new FormData();
+            formData.append('author', document.getElementById('reviewAuthor').value);
+            formData.append('text', document.getElementById('reviewText').value);
+            const file = document.getElementById('reviewPhoto').files[0];
+            if (file) formData.append('photo', file);
+            const res = await fetch('/admin/reviews', { method: 'POST', body: formData });
+            if (res.ok) { loadReviews(); resetReviewForm(); }
+            else alert('Ошибка добавления');
+        }
+        async function updateReview(id) {
+            const formData = new FormData();
+            formData.append('author', document.getElementById('reviewAuthor').value);
+            formData.append('text', document.getElementById('reviewText').value);
+            const file = document.getElementById('reviewPhoto').files[0];
+            if (file) formData.append('photo', file);
+            const res = await fetch(`/admin/reviews/${id}`, { method: 'PUT', body: formData });
+            if (res.ok) { loadReviews(); resetReviewForm(); }
+            else alert('Ошибка обновления');
+        }
+        async function deleteReview(id) {
+            if (!confirm('Удалить отзыв?')) return;
+            const res = await fetch(`/admin/reviews/${id}`, { method: 'DELETE' });
+            if (res.ok) loadReviews();
+            else alert('Ошибка удаления');
+        }
+        function resetReviewForm() {
+            document.getElementById('reviewAuthor').value = '';
+            document.getElementById('reviewText').value = '';
+            document.getElementById('reviewPhoto').value = '';
+            const btn = document.querySelector('.reviews-form button');
+            btn.innerText = 'Добавить отзыв';
+            btn.onclick = addReview;
+            window.editReviewId = null;
+        }
+
+        // Проверка сессии
+        fetch('/admin/applications').then(res => {
+            if (res.status === 401) return;
+            document.getElementById('loginPanel').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            loadApplications();
+            loadStaff();
+            loadReviews();
+        }).catch(() => {});
+    </script>
+</body>
+</html>
